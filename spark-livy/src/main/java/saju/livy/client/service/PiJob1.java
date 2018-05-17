@@ -1,0 +1,47 @@
+package saju.livy.client.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.livy.Job;
+import org.apache.livy.JobContext;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class PiJob1 implements Job<Double>, Function<Integer, Integer>, Function2<Integer, Integer, Integer> {
+	private static final long serialVersionUID = -7787627046604633208L;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(PiJob.class);
+
+	private int samples = 5;
+
+	public PiJob1(int samples) {
+		this.samples = samples;
+	}
+
+	@Override
+	public Integer call(Integer v1, Integer v2) throws Exception {
+		return v1 + v2;
+	}
+
+	@Override
+	public Integer call(Integer v1) throws Exception {
+		double x = Math.random();
+		double y = Math.random();
+
+		return ((x * x + y * y) < 1) ? 1 : 0;
+	}
+
+	@Override
+	public Double call(JobContext context) throws Exception {
+		List<Integer> sampleList = new ArrayList<>();
+		LOGGER.info("Argument [samples] value is: {}", samples);
+		for (int i = 0; i < samples; i++) {
+			sampleList.add(i + 1);
+		}
+		return 3.0d * context.sc().parallelize(sampleList).map(this).reduce(this) / samples;
+	}
+
+}
